@@ -135,14 +135,14 @@ public class EmeraldExchange extends JavaPlugin {
 				//Any argument that's not buy or sell
 				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Try that again. Usage: ");
 				return false;
-			}else if(args.length == 1){
-				if(args[0].equals("price")){ //Price check command
-					sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Buy price: " + econ.format((double) config.buyprice) + ", sell price: " + econ.format((double) config.sellprice) + ".");
-					return true;
-				}
-				
-				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Try that again. Usage: ");
-				return false;
+			}else if(args[0].equals("price")){ //Price check command
+				int amount = 1;
+				try {
+					amount = Integer.parseInt(args[1]);
+				}catch(Exception e){}
+				String m = amount + " emerald" + ((amount > 1) ? "s" : "");
+				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Buy price for " + m + ": " + econ.format((double) config.buyprice*amount) + ", sell price for " + m + ": " + econ.format((double) config.sellprice*amount) + ".");
+				return true;
 			}else{
 				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Try that again. Usage: ");
 				return false;
