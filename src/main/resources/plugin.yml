@@ -1,0 +1,18 @@
+author: Daniel Rampelt
+database: false
+description: Exchange your emeralds for in-game money or the other way around. (Uses
+  vault)
+generator: http://dinnerbone.com/minecraft/tools/pluginator/
+main: ca.drmc.emeraldexchange.EmeraldExchange
+name: EmeraldExchange
+startup: postworld
+url: http://drmc.ca/
+version: '1.0'
+depend: [Vault]
+commands:
+    test-ee:
+        description: Shows economy balance
+        usage: /test-ee
+    ee:
+        description: Buy or sell emeralds
+        usage: /ee <buy|sell|price> [amount]
