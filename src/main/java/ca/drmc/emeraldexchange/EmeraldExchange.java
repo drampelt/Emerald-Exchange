@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -19,6 +20,7 @@ public class EmeraldExchange extends JavaPlugin {
 	private LazyConfig config;
 	private static final Logger log = Logger.getLogger("Minecraft");
 	public static Economy econ = null;
+	public static Permission perms = null;
 
 	public void onDisable() {
 		//Self explanatory
@@ -33,6 +35,8 @@ public class EmeraldExchange extends JavaPlugin {
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
+		//Setup permissions
+		setupPermissions();
 		//Setup config
 		config = new LazyConfig(this);
 		config.load();
@@ -55,6 +59,13 @@ public class EmeraldExchange extends JavaPlugin {
 		return econ != null;
 	}
 
+	private boolean setupPermissions() {
+		//Check for a permissions plugin
+		RegisteredServiceProvider<Permission> rsp = getServer().getServicesManager().getRegistration(Permission.class);
+		perms = rsp.getProvider();
+		return perms != null;
+	}
+
 	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
 		if(!(sender instanceof Player)) {
 			//Make sure the console doesn't use this :P
@@ -62,28 +73,28 @@ public class EmeraldExchange extends JavaPlugin {
 			return true;
 		}
 		Player player = (Player) sender;
-		if(command.getLabel().equals("test-ee")){
-			//A test command that displays your balance
-			sender.sendMessage(String.format("You have %s", econ.format(econ.getBalance(player.getName()))));
-			return true;
-		}else if(command.getLabel().equals("ee")){
+		if(command.getLabel().equals("ee")){
 			//Main command
-			if(args.length == 2){
+			if(args.length > 0){
 				if(args[0].equals("buy")){ //Player is buying emeralds
+					if(!perms.has(player, "ee.buy")){
+						sendMessage(sender, "You do not have permission to do that.");
+						return true;
+					}
 					int amount;
 					try {
 						//Use try and catch to make sure they don't type a string instead of a number for the amount
 						amount = Integer.parseInt(args[1]);
 					}catch(Exception e){
 						//Amount is not a number
-						sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] The amount to buy must be a number.");
+						sendMessage(sender, "The amount to buy must be a number.");
 						return true;
 					}
 					double balance = econ.getBalance(player.getName()); //Get player's balance
 					int cost = amount * config.buyprice; //Calculate the cost of how many emeralds they want to buy
 					if(cost > balance){
 						//Not enough money
-						sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] You don't have enough money to buy " + amount + " emeralds.");
+						sendMessage(sender, "You don't have enough money to buy " + amount + " emeralds.");
 						return true;
 					}
 					EconomyResponse r = econ.withdrawPlayer(player.getName(), cost); //Attempt to withdraw the amount
@@ -93,20 +104,24 @@ public class EmeraldExchange extends JavaPlugin {
 						PlayerInventory i = player.getInventory(); //Get player inventory
 						ItemStack is = new ItemStack(Material.EMERALD, amount); //Make an ItemStack of emeralds
 						i.addItem(is); //Give the player the emeralds
-						sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] You bought " + amount + " " + e + " for " + econ.format((double) cost));
+						sendMessage(sender, "You bought " + amount + " " + e + " for " + econ.format((double) cost));
 						return true;
 					}else{
 						//Something went wrong with the transaction
-						sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] An error occured :(");
+						sendMessage(sender, "An error occured :(");
 						return true;
 					}
 				}else if(args[0].equals("sell")){ //Player is selling emeralds
+					if(!perms.has(player, "ee.sell")){
+						sendMessage(sender, "You do not have permission to do that.");
+						return true;
+					}
 					int amount;
 					try {
 						//Make sure it's a number like before
 						amount = Integer.parseInt(args[1]);
 					}catch(Exception e){
-						sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] The amount to sell must be a number.");
+						sendMessage(sender, "The amount to sell must be a number.");
 						return true;
 					}
 					int cost = amount * config.sellprice; //Calculate price
@@ -119,37 +134,43 @@ public class EmeraldExchange extends JavaPlugin {
 							ItemStack is = new ItemStack(Material.EMERALD, amount);
 							i.removeItem(is);
 							String e = (amount > 1) ? "emeralds" : "emerald";
-							sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] You sold " + amount + " " + e + " for " + econ.format((double) cost));
+							sendMessage(sender, "You sold " + amount + " " + e + " for " + econ.format((double) cost));
 							return true;
 						}else{
 							//Something went wrong with the transaction
-							sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] An error occured :(");
+							sendMessage(sender, "An error occured :(");
 							return true;
 						}
 					}else{
 						//Not enough emeralds
-						sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] You need more emeralds.");
+						sendMessage(sender, "You need more emeralds.");
 						return true;
 					}
+				}else if(args[0].equals("price")){ //Price check command
+					if(!perms.has(player, "ee.price")){
+						sendMessage(sender, "You do not have permission to do that.");
+						return true;
+					}
+					int amount = 1;
+					try {
+						amount = Integer.parseInt(args[1]);
+					}catch(Exception e){}
+					String m = amount + " emerald" + ((amount > 1) ? "s" : "");
+					sendMessage(sender, "Buy price for " + m + ": " + econ.format((double) config.buyprice*amount) + ", sell price for " + m + ": " + econ.format((double) config.sellprice*amount) + ".");
+					return true;
 				}
-				//Any argument that's not buy or sell
-				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Try that again. Usage: ");
-				return false;
-			}else if(args[0].equals("price")){ //Price check command
-				int amount = 1;
-				try {
-					amount = Integer.parseInt(args[1]);
-				}catch(Exception e){}
-				String m = amount + " emerald" + ((amount > 1) ? "s" : "");
-				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Buy price for " + m + ": " + econ.format((double) config.buyprice*amount) + ", sell price for " + m + ": " + econ.format((double) config.sellprice*amount) + ".");
-				return true;
-			}else{
-				sender.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] Try that again. Usage: ");
+				//Any argument that's not buy, sell or price
+				sendMessage(sender, "Try that again. Usage:");
 				return false;
 			}
 		}
 		return false;
 
+	}
+	
+	private void sendMessage(CommandSender s, String m){
+		//Send all messages the same way
+		s.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] " + m);
 	}
 
 }

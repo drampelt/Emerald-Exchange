@@ -10,9 +10,22 @@ url: http://drmc.ca/
 version: '1.0'
 depend: [Vault]
 commands:
-    test-ee:
-        description: Shows economy balance
-        usage: /test-ee
     ee:
         description: Buy or sell emeralds
         usage: /ee <buy|sell|price> [amount]
+permissions:
+    ee.*:
+        description: Access to all commands
+        children:
+            ee.buy: true
+            ee.sell: true
+            ee.price: true
+    ee.buy:
+        description: Access to /ee buy
+        default: true
+    ee.sell:
+        description: Access to /ee sell
+        default: true
+    ee.price:
+        description: Access to /ee price
+        default: true
