@@ -151,10 +151,12 @@ public class EmeraldExchange extends JavaPlugin {
 						sendMessage(sender, "You do not have permission to do that.");
 						return true;
 					}
-					int amount = 1;
+					int amount;
 					try {
 						amount = Integer.parseInt(args[1]);
-					}catch(Exception e){}
+					}catch(Exception e){
+						amount = 1;
+					}
 					String m = amount + " emerald" + ((amount > 1) ? "s" : "");
 					sendMessage(sender, "Buy price for " + m + ": " + econ.format((double) config.buyprice*amount) + ", sell price for " + m + ": " + econ.format((double) config.sellprice*amount) + ".");
 					return true;
