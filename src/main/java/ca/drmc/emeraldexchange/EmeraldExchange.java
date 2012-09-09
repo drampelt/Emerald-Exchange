@@ -14,6 +14,7 @@ import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -89,6 +90,11 @@ public class EmeraldExchange extends JavaPlugin {
 						sendMessage(sender, "You do not have permission to do that.");
 						return true;
 					}
+					if(player.getGameMode() == GameMode.CREATIVE){
+						sendMessage(sender, "You can't buy emeralds in creative mode.");
+						logToFile(player.getName() + " tried to buy emeralds in creative mode.");
+						return true;
+					}
 					int amount;
 					try {
 						//Use try and catch to make sure they don't type a string instead of a number for the amount
@@ -124,6 +130,11 @@ public class EmeraldExchange extends JavaPlugin {
 				}else if(args[0].equals("sell")){ //Player is selling emeralds
 					if(!perms.has(player, "ee.sell")){
 						sendMessage(sender, "You do not have permission to do that.");
+						return true;
+					}
+					if(player.getGameMode() == GameMode.CREATIVE){
+						sendMessage(sender, "You can't sell emeralds in creative mode.");
+						logToFile(player.getName() + " tried to sell emeralds in creative mode.");
 						return true;
 					}
 					int amount;
