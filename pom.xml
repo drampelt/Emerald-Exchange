@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ca.drmc.emeraldexchange</groupId>
     <artifactId>EmeraldExchange</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <name>EmeraldExchange</name>
     <url>http://drmc.ca/</url>
     <repositories>

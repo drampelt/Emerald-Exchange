@@ -1,5 +1,12 @@
 package ca.drmc.emeraldexchange;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
@@ -15,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
 
 public class EmeraldExchange extends JavaPlugin {
 	private LazyConfig config;
@@ -95,16 +103,18 @@ public class EmeraldExchange extends JavaPlugin {
 					if(cost > balance){
 						//Not enough money
 						sendMessage(sender, "You don't have enough money to buy " + amount + " emeralds.");
+						logToFile(player.getName() + " did not have enough money for " + amount + " emeralds.");
 						return true;
 					}
 					EconomyResponse r = econ.withdrawPlayer(player.getName(), cost); //Attempt to withdraw the amount
 					if(r.transactionSuccess()){
 						//Withdraw was successful
-						String e = (amount > 1) ? "emeralds" : "emerald"; //If there is only 1 emerald, don't say emeralds
+						String e = amount + " emerald" + ((amount > 1) ? "s" : ""); //If there is only 1 emerald, don't say emeralds
 						PlayerInventory i = player.getInventory(); //Get player inventory
 						ItemStack is = new ItemStack(Material.EMERALD, amount); //Make an ItemStack of emeralds
 						i.addItem(is); //Give the player the emeralds
-						sendMessage(sender, "You bought " + amount + " " + e + " for " + econ.format((double) cost));
+						sendMessage(sender, "You bought " + e + " for " + econ.format(cost));
+						logToFile(player.getName() + " bought " + e + " for " + econ.format(cost));
 						return true;
 					}else{
 						//Something went wrong with the transaction
@@ -134,7 +144,8 @@ public class EmeraldExchange extends JavaPlugin {
 							ItemStack is = new ItemStack(Material.EMERALD, amount);
 							i.removeItem(is);
 							String e = (amount > 1) ? "emeralds" : "emerald";
-							sendMessage(sender, "You sold " + amount + " " + e + " for " + econ.format((double) cost));
+							sendMessage(sender, "You sold " + amount + " " + e + " for " + econ.format(cost));
+							logToFile(player.getName() + " sold " + amount + " " + e + " for " + econ.format(cost));
 							return true;
 						}else{
 							//Something went wrong with the transaction
@@ -144,6 +155,7 @@ public class EmeraldExchange extends JavaPlugin {
 					}else{
 						//Not enough emeralds
 						sendMessage(sender, "You need more emeralds.");
+						logToFile(player.getName() + " did not have enough emeralds to sell (" + amount + ")");
 						return true;
 					}
 				}else if(args[0].equals("price")){ //Price check command
@@ -159,6 +171,7 @@ public class EmeraldExchange extends JavaPlugin {
 					}
 					String m = amount + " emerald" + ((amount > 1) ? "s" : "");
 					sendMessage(sender, "Buy price for " + m + ": " + econ.format((double) config.buyprice*amount) + ", sell price for " + m + ": " + econ.format((double) config.sellprice*amount) + ".");
+					logToFile(player.getName() + " checked the price of " + m + ".");
 					return true;
 				}
 				//Any argument that's not buy, sell or price
@@ -175,5 +188,48 @@ public class EmeraldExchange extends JavaPlugin {
 		s.sendMessage("[" + ChatColor.GREEN + "EmeraldExchange" + ChatColor.WHITE + "] " + m);
 	}
 
+	public void logToFile(String message)
+	 
+    {
+ 
+		if(!config.log){
+			return;
+		}
+		log.info("[EmeraldExchange] " + message);
+        try
+        {
+            File dataFolder = getDataFolder();
+            if(!dataFolder.exists())
+            {
+                dataFolder.mkdir();
+            }
+ 
+            File saveTo = new File(getDataFolder(), "log.txt");
+            if (!saveTo.exists())
+            {
+                saveTo.createNewFile();
+            }
+ 
+ 
+            Format formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss ");
+            
+            FileWriter fw = new FileWriter(saveTo, true);
+ 
+            PrintWriter pw = new PrintWriter(fw);
+ 
+            pw.println(formatter.format(new Date()) + message);
+ 
+            pw.flush();
+ 
+            pw.close();
+ 
+        } catch (IOException e)
+        {
+ 
+            e.printStackTrace();
+ 
+        }
+ 
+    }
 }
 

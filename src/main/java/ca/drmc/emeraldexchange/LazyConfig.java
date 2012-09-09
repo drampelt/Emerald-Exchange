@@ -9,4 +9,5 @@ public class LazyConfig extends Config {
 	//Nice and easy lazy config, just define the variables and it does everything for you
 	public int buyprice = 10;
 	public int sellprice = 10;
+	public boolean log = true;
 }
