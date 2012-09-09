@@ -7,7 +7,7 @@ main: ca.drmc.emeraldexchange.EmeraldExchange
 name: EmeraldExchange
 startup: postworld
 url: http://drmc.ca/
-version: '1.0'
+version: '1.0.1'
 depend: [Vault]
 commands:
     ee:
